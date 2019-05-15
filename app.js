@@ -14,7 +14,7 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(methodOverride("_method"));
 app.use(express.static("public"));
-mongoose.connect("mongodb://localhost/movies-app");
+mongoose.connect("mongodb://localhost:27109/movies-app", {useNewUrlParser: true});
 
 var saltRounds = 8;
 var session = [];
@@ -22,7 +22,7 @@ var session = [];
 // Models
 
 var showSchema = new mongoose.Schema({
-	name: {type: String, required: true, max: 1000}
+	name: {type: String, max: 1000},
 	startDate: {type: Date},
 	country: {type: String},
 	status: {type: String},
@@ -31,9 +31,9 @@ var showSchema = new mongoose.Schema({
 });
 
 var userSchema = new mongoose.Schema({
-	name: {typr: String, required: true},
-	username: {type: String, required: true, max: 100},
-	password: {type: String, required: true, max: 1000},
+	name: {typr: String},
+	username: {type: String, max: 100},
+	password: {type: String, max: 1000},
 	likedMovies: [showSchema]
 });
 
@@ -44,6 +44,12 @@ var User = mongoose.model("User", userSchema);
 
 app.get("/", function(req, res) {
 	res.render("landing");
+});
+
+// GET Login
+
+app.get("/login", function(req, res) {
+	res.render("login");
 });
 
 // POST Login
@@ -58,7 +64,7 @@ app.post("/login", function(req, res) {
 	}, function(err, user) {
 		if (err) {
 			console.log(err);
-			res.redirect("/signup");
+			res.redirect({}, "/signup");
 		}
 		else {
 			session.push({userId: user._id});
@@ -66,9 +72,17 @@ app.post("/login", function(req, res) {
 				userId: user._id,
 				message: "success"
 			}
-			res.redirect("/index", {cookie: cookie})
+			console.log(cookie);
+			console.log(user);
+			res.redirect(200, "/index")
 		}
 	});
+});
+
+// GET Signup
+
+app.get("/signup", function(req, res) {
+	res.render("signup");
 });
 
 // POST Signup
@@ -95,7 +109,8 @@ app.post("/signup", function(req, res) {
 					userId: user._id,
 					message: "success"
 				}
-				res.redirect("/index", {cookie: cookie})
+				console.log(user);
+				res.redirect(200, "/index");
 			}
 		});
 	}
