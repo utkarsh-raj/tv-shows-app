@@ -4,7 +4,9 @@ var express        = require("express"),
 	bodyParser     = require("body-parser"),
 	mongoose       = require("mongoose"),
 	methodOverride = require("method-override"),
-	bcrypt         = require("bcrypt");
+	bcrypt         = require("bcrypt"),
+	queryString    = require("querystring"),
+	request        = require("request");
 
 // Application setup
 
@@ -67,14 +69,17 @@ app.post("/login", function(req, res) {
 			res.redirect({}, "/signup");
 		}
 		else {
-			session.push({userId: user._id});
-			var cookie = {
-				userId: user._id,
-				message: "success"
+			if (user.length === 0) {
+				res.render("signup");
 			}
-			console.log(cookie);
-			console.log(user);
-			res.redirect(200, "/index")
+			else {
+				var query = queryString.stringify({
+					"id": user[0]._id
+				});
+				// console.log(cookie);
+				console.log(user);
+				res.redirect(200, "/index/" + user[0]._id);
+			}
 		}
 	});
 });
@@ -94,26 +99,64 @@ app.post("/signup", function(req, res) {
 	var password2 = req.body.password2;
 
 	if (password === password2) {
-		User.create({
-			name: name,
-			username: username,
-			password: password
+		User.find({
+			username: username
 		}, function(err, user) {
 			if (err) {
 				console.log(err);
-				res.redirect("/signup");
 			}
 			else {
-				session.push({userId: user._id});
-				var cookie = {
-					userId: user._id,
-					message: "success"
+				if (user.length !== 0) {
+					res.redirect(200, "/login");
 				}
-				console.log(user);
-				res.redirect(200, "/index");
+				else {
+					User.create({
+						name: name,
+						username: username,
+						password: password
+					}, function(err, user) {
+						if (err) {
+							console.log(err);
+							res.redirect("/signup");
+						}
+						else {
+							var query = queryString.stringify({
+								"id": user[0]._id
+							});
+							// console.log(cookie);
+							console.log(user);
+							res.redirect(200, "/index/" + user[0]._id);
+						}
+					});
+				}
 			}
 		});
 	}
+});
+
+// GET Index
+
+app.get("/index/:id", function(req, res) {
+	var userId = req.params.id;
+	console.log(userId);
+	User.find({
+		_id: userId
+	}, function(err, user) {
+		if (err) {
+			console.log(err);
+		}
+		else {
+			var userInstance = user[0];
+			var url = "https://www.episodate.com/api/most-popular?page=1";
+		    request(url, function(error, response, body) {
+		        if (!error && response.statusCode == 200) {
+		            var data = JSON.parse(body);
+		            console.log(data);
+		            res.render("index", {data: data, userInstance: userInstance});
+		        }
+		    });
+		}
+	});
 });
 
 // ===========================================================
