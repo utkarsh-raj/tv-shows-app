@@ -25,21 +25,22 @@ var session = [];
 
 var showSchema = new mongoose.Schema({
 	name: {type: String, max: 1000},
-	startDate: {type: Date},
-	country: {type: String},
+	startDate: {type: String},
 	status: {type: String},
 	network: {type: String},
+	endDate: {type: String},
 	image: {type: String}
 });
 
 var userSchema = new mongoose.Schema({
-	name: {typr: String},
+	name: {type: String},
 	username: {type: String, max: 100},
 	password: {type: String, max: 1000},
-	likedMovies: [showSchema]
+	likedTvShows: [showSchema]
 });
 
 var User = mongoose.model("User", userSchema);
+var Show = mongoose.model("Show", showSchema);
 
 // Routes
 // ===========================================================
@@ -121,11 +122,11 @@ app.post("/signup", function(req, res) {
 						}
 						else {
 							var query = queryString.stringify({
-								"id": user[0]._id
+								"id": user._id
 							});
 							// console.log(cookie);
 							console.log(user);
-							res.redirect(200, "/index/" + user[0]._id);
+							res.redirect(200, "/index/" + user._id);
 						}
 					});
 				}
@@ -152,6 +153,7 @@ app.get("/index/:id", function(req, res) {
 		        if (!error && response.statusCode == 200) {
 		            var data = JSON.parse(body);
 		            console.log(data);
+		            console.log(userInstance);
 		            res.render("index", {data: data, userInstance: userInstance});
 		        }
 		    });
@@ -159,9 +161,51 @@ app.get("/index/:id", function(req, res) {
 	});
 });
 
+// POST Search
+
+app.post("/search/:id", function(req, res) {
+	var userId = req.params.id;
+	var search = req.body.search;
+	User.find({
+		_id: userId
+	}, function(err, user) {
+		if (err) {
+			console.log(err);
+		}
+		else {
+			var userInstance = user[0];
+			var url = "https://www.episodate.com/api/search?q=" + search;
+		    request(url, function(error, response, body) {
+		        if (!error && response.statusCode == 200) {
+		            var data = JSON.parse(body);
+		            console.log(data);
+		            console.log(userInstance);
+		            res.render("index", {data: data, userInstance: userInstance});
+		        }
+		    });
+		}
+	});
+});
+
+app.get("/details/:userId/:tvShowId", function(req, res) {
+	var userId = req.params.userId;
+	var tvShowId = req.params.tvShowId;
+
+	User.find({
+		_id: userId
+	}, function(err, user) {
+		if (err) {
+			console.log(err);
+		}
+		else {
+			user[0].likedTvShows.push()
+		}
+	})
+});
+
 // ===========================================================
 
-var port = 8000;
+var port = 8080;
 
 app.listen(port, process.env.IP, function(req, res) {
 	console.log("The TV Shows App has started!");
