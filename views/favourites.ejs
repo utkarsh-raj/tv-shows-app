@@ -34,12 +34,12 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav">
-                <% var indexLink = "/index/" + userInstance._id; %>
-                <li class="active"><a href=<%= indexLink %>>Most Popular <span class="sr-only">(current)</span></a></li>
-                <% var favourites = "/favourites/" + userInstance._id; %>
-                <li><a href=<%= favourites %>>My Favourites</a></li>
+                <% var indexLink = "/index/" + userId; %>
+                <li><a href=<%= indexLink %>>Most Popular <span class="sr-only">(current)</span></a></li>
+                <% var favourites = "/favourites/" + userId; %>
+                <li class="active"><a href=<%= favourites %>>My Favourites</a></li>
               </ul>
-              <% var link = "/search/" + userInstance._id; %>
+              <% var link = "/search/" + userId; %>
               <form action=<%= link %> method="POST" class="navbar-form navbar-left">
                 <div class="form-group">
                   <input type="text" class="form-control" name="search" placeholder="Search">
@@ -50,7 +50,7 @@
                 <li><a href="/"><i class="fas fa-sign-out-alt"></i> Sign Out</a></li>
               </ul>
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="#">Welcome, <strong><%= userInstance["name"] %></strong></a></li>
+                <li><a href="#">Welcome, <strong><%= userId %></strong></a></li>
               </ul>
             </div><!-- /.navbar-collapse -->
           </div><!-- /.container-fluid -->
@@ -58,26 +58,26 @@
 
         <div class="container">
             <% var a = 0; %>
-            <% for (a = 0; a < data["tv_shows"].length; a++) { %>
+            <% for (a = 0; a < data.length; a++) { %>
                 <div class="row">
                     <div class="col-sm-1"></div>
                     <div class="col-sm-3">
-                        <img class="thumbnail" src=<%= data["tv_shows"][a]["image_thumbnail_path"] %>>
+                        <img class="thumbnail" src=<%= data[a]["image"] %>>
                     </div>
                     <div class="col-sm-7">
-                        <h1><strong><%= data["tv_shows"][a]["name"] %></strong></h1>
-                        <h4><%= data["tv_shows"][a]["network"] %></h4>
+                        <h1><strong><%= data[a]["name"] %></strong></h1>
+                        <h4><%= data[a]["network"] %></h4>
                         <br>
                         <br>
-                        <strong>Duration:</strong> <%= data["tv_shows"][a]["start_date"] %> - <% if (data["tv_shows"][a]["end_date"] === null) { %> <%= data["tv_shows"][a]["status"] %> <% } else { %> <%= data["tv_shows"][a]["end_date"] %> <% } %>
+                        <strong>Duration:</strong> <%= data[a]["startDate"] %> - <% if (data[a]["endDate"] === null) { %> <%= data[a]["status"] %> <% } else { %> <%= data[a]["endDate"] %> <% } %>
                         <br>
                         <br>
                         <br>
                         <br>
-                        <% var details = "/details/" + userInstance._id + "/" + data["tv_shows"][a]["id"]; %>
+                        <% var details = "/details/" + userId + "/" + data[a]["id"]; %>
                         <!-- <a href=<%= details %> class="btn btn-primary">More Details</a> -->
-                        <% var favourites = "/favourites/" + userInstance._id + "/" + data["tv_shows"][a]["id"]; %>
-                        <a href=<%= favourites %> class="btn btn-primary">Add to Favourites</a>
+                        <% var favourites = "/favourites/" + userId + "/" + data[a]["id"]; %>
+                        <!-- <a href=<%= favourites %> class="btn btn-primary">Add to Favourites</a> -->
                     </div>
                     <div class="col-sm-1"></div>
                 </div>

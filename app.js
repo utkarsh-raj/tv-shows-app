@@ -24,12 +24,14 @@ var session = [];
 // Models
 
 var showSchema = new mongoose.Schema({
+	id: {type: String},
+	userId: {type: String},
 	name: {type: String, max: 1000},
-	startDate: {type: String},
 	status: {type: String},
 	network: {type: String},
-	endDate: {type: String},
-	image: {type: String}
+	image: {type: String},
+	startDate: {type: String},
+	endDate: {type: String}
 });
 
 var userSchema = new mongoose.Schema({
@@ -67,7 +69,7 @@ app.post("/login", function(req, res) {
 	}, function(err, user) {
 		if (err) {
 			console.log(err);
-			res.redirect({}, "/signup");
+			res.redirect(302, "/signup");
 		}
 		else {
 			if (user.length === 0) {
@@ -79,7 +81,7 @@ app.post("/login", function(req, res) {
 				});
 				// console.log(cookie);
 				console.log(user);
-				res.redirect(200, "/index/" + user[0]._id);
+				res.redirect(302, "/index/" + user[0]._id);
 			}
 		}
 	});
@@ -126,12 +128,15 @@ app.post("/signup", function(req, res) {
 							});
 							// console.log(cookie);
 							console.log(user);
-							res.redirect(200, "/index/" + user._id);
+							res.redirect(302, "/index/" + user._id);
 						}
 					});
 				}
 			}
 		});
+	}
+	else {
+		res.redirect("/signup");
 	}
 });
 
@@ -152,8 +157,8 @@ app.get("/index/:id", function(req, res) {
 		    request(url, function(error, response, body) {
 		        if (!error && response.statusCode == 200) {
 		            var data = JSON.parse(body);
-		            console.log(data);
-		            console.log(userInstance);
+		            // console.log(data);
+		            // console.log(userInstance);
 		            res.render("index", {data: data, userInstance: userInstance});
 		        }
 		    });
@@ -178,8 +183,8 @@ app.post("/search/:id", function(req, res) {
 		    request(url, function(error, response, body) {
 		        if (!error && response.statusCode == 200) {
 		            var data = JSON.parse(body);
-		            console.log(data);
-		            console.log(userInstance);
+		            // console.log(data);
+		            // console.log(userInstance);
 		            res.render("index", {data: data, userInstance: userInstance});
 		        }
 		    });
@@ -187,25 +192,84 @@ app.post("/search/:id", function(req, res) {
 	});
 });
 
-app.get("/details/:userId/:tvShowId", function(req, res) {
+app.get("/favourites/:userId/:tvShowId", function(req, res) {
 	var userId = req.params.userId;
 	var tvShowId = req.params.tvShowId;
 
-	User.find({
-		_id: userId
-	}, function(err, user) {
+	Show.find({
+		userId: userId,
+		id: tvShowId
+	}, function(err, show) {
 		if (err) {
 			console.log(err);
 		}
 		else {
-			user[0].likedTvShows.push()
+			if (show.length !== 0) {
+				User.find({
+					_id: userId
+				}, function(err, user) {
+					if (err) {
+						console.log(err);
+					}
+					else {
+						var userInstance = user[0];
+						var url = "https://www.episodate.com/api/search?q=" + tvShowId;
+					    request(url, function(error, response, body) {
+					        if (!error && response.statusCode == 200) {
+					            var data = JSON.parse(body);
+					            console.log(data);
+					            console.log(userInstance);
+					            res.render("index", {data: data, userInstance: userInstance});
+					        }
+					    });
+					}
+				});
+			}
+			else {
+				var url = "https://www.episodate.com/api/show-details?q=" + tvShowId;
+			    request(url, function(error, response, body) {
+			        if (!error && response.statusCode == 200) {
+			            var data = JSON.parse(body);
+			            console.log(data);
+			            Show.create({
+			            	userId: userId,
+			            	id: tvShowId,
+			            	name: data["tvShow"]["name"],
+			            	status: data["tvShow"]["status"],
+			            	image: data["tvShow"]["image_thumbnail_path"],
+			            	network: data["tvShow"]["network"],
+			            	startDate: data["tvShow"]["start_date"],
+			            	endDate: data["tvShow"]["end_date"]
+			            }, function(err, show) {
+			            	if (err) {
+			            		console.log(err);
+			            	}
+			            	else {
+			            		res.redirect("/favourites/" + userId);
+			            	}
+			            });
+			        }
+			    });
+			}
 		}
-	})
+	});
+});
+
+app.get("/favourites/:userId", function(req, res) {
+	var userId = req.params.userId;
+
+	Show.find({
+		userId: userId
+	}, function(err, shows) {
+		var data = shows;
+		console.log(data);
+		res.render("favourites", {data: data, userId: userId});
+	});
 });
 
 // ===========================================================
 
-var port = 8080;
+var port = process.env.PORT || 8000;
 
 app.listen(port, process.env.IP, function(req, res) {
 	console.log("The TV Shows App has started!");
