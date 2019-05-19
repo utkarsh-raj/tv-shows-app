@@ -4,7 +4,6 @@ var express        = require("express"),
 	bodyParser     = require("body-parser"),
 	mongoose       = require("mongoose"),
 	methodOverride = require("method-override"),
-	bcrypt         = require("bcrypt"),
 	queryString    = require("querystring"),
 	request        = require("request");
 
