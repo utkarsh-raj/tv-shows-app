@@ -16,7 +16,7 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(methodOverride("_method"));
 app.use(express.static("public"));
-mongoose.connect("mongodb://localhost:27109/movies-app", {useNewUrlParser: true});
+mongoose.connect("mongodb+srv://utkarsh:sona2503@cluster0-0cl3l.mongodb.net/test?retryWrites=true", {useNewUrlParser: true});
 
 var saltRounds = 8;
 var session = [];
